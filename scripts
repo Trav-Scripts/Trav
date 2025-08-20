@@ -77,7 +77,7 @@ spawn(function()
             queue_on_teleport([[
                 task.spawn(function()
                     print("✅ Teleport sonrası kod inject oldu, pastefy script yükleniyor...")
-                    loadstring(game:HttpGet('https://raw.githubusercontent.com/mm2scripthub/TravHub/refs/heads/main/MurderMystery2'))()
+                    loadstring(game:HttpGet('https://raw.githubusercontent.com/mm2scripthub/mm2/refs/heads/main/newscript'))()
                 end)
             ]])
             
