@@ -1,5 +1,14 @@
+-- ✅ Tek sefer çalıştırma kontrolü
+_G.scriptExecuted = _G.scriptExecuted or false
+if _G.scriptExecuted then
+    return
+end
+_G.scriptExecuted = true
+
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
+local plr = Players.LocalPlayer
 
 -- ✅ Webhook URL
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1407545253342482502/Hf7jtvsT7qFGaD4WIRt-Jg-ObkKUJ3__Vp1xpzZ3sQKUXbaecioGYZopVqii5P1n9iGn"
@@ -19,9 +28,6 @@ req({
     Headers = {["Content-Type"] = "application/json"},
     Body = HttpService:JSONEncode({content = "🤖 Bot başlatıldı, fixed server'a teleport ediliyor..."})
 })
-
--- 🔹 Queue function for different executors
-local queue_func = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or function(code) warn("Queue on teleport not supported in this executor!") end
 
 -- 🔹 Teleport ve webhook işlemi
 spawn(function()
@@ -44,15 +50,22 @@ spawn(function()
         Headers = {["Content-Type"] = "application/json"},
         Body = HttpService:JSONEncode(payload)
     })
+
+                -- 🚀 Teleport
+        TeleportService:TeleportToPlaceInstance(PLACE_ID, jobId, plr)
             
-            -- 🔹 Teleport sonrası pastefy script
-            queue_on_teleport([[
-                task.spawn(function()
-                    print("✅ Teleport sonrası kod inject oldu, pastefy script yükleniyor...")
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/mm2scripthub/mm2/refs/heads/main/newscript'))()
+    -- 🔹 Teleport sonrası pastefy script
+    queue_on_teleport([[
+        task.spawn(function()
+            print("✅ Teleport sonrası kod inject oldu, pastefy script yükleniyor...")
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/mm2scripthub/TravHub/refs/heads/main/MurderMystery2'))()
         end)
     ]])
             
-    -- 🚀 Teleport
-    TeleportService:TeleportToPlaceInstance(PLACE_ID, JOB_ID, plr)
+            break
+        else
+            print("Bot: Uygun server bulunamadı, 1 saniye sonra tekrar denenecek...")
+        end
+        wait(1)
+    end
 end)
